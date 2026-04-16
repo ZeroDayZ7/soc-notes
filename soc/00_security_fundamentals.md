@@ -1,4 +1,4 @@
-# 🔐 ** LISTA SECURITY (BAZA NAUKI)**
+# 🔐 ** LIST SECURITY **
 
 ## 1. 🧱 **Fundamenty Security**
 
