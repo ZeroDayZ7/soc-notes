@@ -1,33 +1,36 @@
 @echo off
-title Wybor urzadzenia scrcpy
+title SCRCPY Device Selector
 color 1f
 
+:: Main menu loop
 :menu
 cls
 echo ==========================================
-echo    WYBIERZ URZADZENIE (KLIKNIJ 1 LUB 2)
+echo       SELECT DEVICE (PRESS 1, 2, OR 3)
 echo ==========================================
 echo.
-echo  [1] Telefon 1 (5200d78bfa479449)
-echo  [2] Telefon 2 (310008a89dd353f9)
-echo  [3] Wyjscie
+echo  [1] Samsung 2017 (5200d78bfa479449)
+echo  [2] Galaxy J7 2016 (310008a89dd353f9)
+echo  [3] Exit
 echo.
 echo ==========================================
 
-choice /C 123 /N /M "Twoj wybor: "
+:: Capture user input
+choice /C 123 /N /M "Your choice: "
 
+:: Handle choice logic
 if errorlevel 3 exit
 if errorlevel 2 goto device2
 if errorlevel 1 goto device1
 
 :device1
 cls
-echo Laczenie z 5200d78bfa479449...
+echo Connecting to Samsung 2017...
 .\scrcpy.exe -s 5200d78bfa479449
 exit
 
 :device2
 cls
-echo Laczenie z 310008a89dd353f9...
+echo Connecting to Galaxy J7 2016...
 .\scrcpy.exe -s 310008a89dd353f9
 exit
