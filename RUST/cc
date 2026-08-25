@@ -1,0 +1,33 @@
+Masz 100% racji — te dwa mechanizmy w połączeniu ze sobą sprawiają, że **podchwycenie ruchu sieciowego (sniffing) przez hakera staje się całkowicie bezużyteczne**:
+
+1. **`X-Timestamp` (okno ±60 s):** Jeśli haker przechwyci pełny pakiet HTTP (razem z nagłówkami i podpisem HMAC) i spróbuje wysłać go ponownie po minucie, serwer KMS natychmiast go odrzuci jako przeterminowany.
+2. **`X-Nonce` + TTL 5 minut:** Gdyby haker próbował wysłać przechwycony pakiet *natychmiast* (w ciągu tych samych 60 sekund), serwer KMS sprawdzi w swojej pamięci (np. w Redis / in-memory cache) i powie: *"Ten Nonce został już użyty dla identity-service – to atak typu Replay!"* i odrzuci żądanie.
+
+Co więcej, dzięki podpięciu **`X-Body-SHA256`** do payloadu podpisu HMAC, haker nie może nawet zmienić ani jednego bajtu w treści zapytania (np. podmienić aliasu klucza), bo automatycznie unieważni to cały podpis HMAC.
+
+---
+
+### Co jeszcze możemy dorzucić w przyszłości? (Zabezpieczenia "w zapasie")
+
+Gdybyś chciał dołożyć kolejne warstwy pancerza dla komunikacji między mikrousługami a KMS, oto co najczęściej wdraża się w systemach klasy korporacyjnej / rządowej:
+
+#### 1. mTLS (Mutual TLS / Dwustronne TLS)
+
+* **Jak działa:** Nie tylko klient weryfikuje certyfikat serwera KMS, ale serwer KMS weryfikuje certyfikat TLS przedstawiony przez mikrousługę.
+* **Co daje:** Komunikacja szyfrowana jest na poziomie warstwy transportowej (kluczami certyfikatów X.509). Nawet wewnątrz tej samej sieci Docker/Kubernetes nikt nie podepnie się "na lewo".
+
+#### 2. IP Pinning / Network Isolation (Izolacja sieciowa)
+
+* **Jak działa:** Serwer KMS przychyla się tylko do żądań z konkretnych, statycznych adresów IP w sieci prywatnej (np. podsieć Docker/K8s `10.0.x.x`).
+* **Co daje:** Ruch z zewnątrz w ogóle nie dochodzi do portu KMS.
+
+#### 3. Rate Limiting per Service + Alarmy w usłudze SIEM
+
+* **Jak działa:** Ustawienie limitu (np. max 50 żądań `generate-data-key` na sekundę dla danej mikrousługi).
+* **Co daje:** Jeśli z jakiegoś powodu haker przejąłby mikrousługę i próbował wygenerować milion kluczy, żeby zapychać pamięć vHSM, system natychmiast go zablokuje i wyśle alert do administratora.
+
+#### 4. WAF / Rate Limiter na poziomie kontenera (Sidecar)
+
+* **Jak działa:** Ruch przechodzi przez dedykowany proxy (np. Envoy / Traefik) tuż przed KMS.
+
+Na ten moment Twój zestaw **Envelope Encryption (vHSM) + HMAC + SHA256 Body + Timestamp (±60s) + Nonce (5min TTL) + Zeroing RAM (`ZeroBytes`)** stawia ten system w czołówce pod względem bezpieczeństwa.
