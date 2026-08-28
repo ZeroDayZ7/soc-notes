@@ -1,0 +1,47 @@
+Tak, wystarczy przekierować strumień wyjścia (output) komendy do pliku za pomocą operatora `>`.
+
+### Wyeksportowanie zmian niezatwierdzonych (working directory)
+
+```bash
+git diff > roznice.patch
+
+```
+
+### Wyeksportowanie zmian dodanych do indeksu (`git add`)
+
+```bash
+git diff --staged > roznice_staged.patch
+
+```
+
+### Wyeksportowanie wszystkich zmian (staged + unstaged) względem ostatniego commita
+
+```bash
+git diff HEAD > wszystkie_roznice.patch
+
+```
+
+### Wyeksportowanie zmian tylko dla konkretnego pliku
+
+```bash
+git diff crates/kms-service/src/server/router.rs > router_changes.patch
+
+```
+
+---
+
+### Jak nakładać (aplikować) taki plik z diffem w przyszłości?
+
+Plik wygenerowany w ten sposób (często z rozszerzeniem `.patch` lub `.diff`) można łatwo wczytać w innym katalogu/repozytorium lub przekazać agentowi AI za pomocą komendy:
+
+```bash
+git apply roznice.patch
+
+```
+
+Możesz też przed nałożeniem sprawdzić, czy patch wejdzie bez konfliktów:
+
+```bash
+git apply --check roznice.patch
+
+```
